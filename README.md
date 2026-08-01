@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Aegis - Next.js 15 App Router Capstone Project
 
-## Getting Started
+A modern, high-performance web application scaffold built with **Next.js 15 (App Router)** and **Tailwind CSS**, styled using a bespoke design theme. This project is the initial scaffold for the Frontend AI Engineering capstone track.
 
-First, run the development server:
+## 🔗 Live Demo & Links
+* **Live Website**: [https://ai-frontend-capstone-self.vercel.app](https://ai-frontend-capstone-self.vercel.app)
+* **GitHub Repository**: [https://github.com/AreejZahra92/ai-frontend-capstone](https://github.com/AreejZahra92/ai-frontend-capstone)
 
+---
+
+## 🎨 Design System & Colors
+The project utilizes a custom, modern color theme built on:
+* **Primary (Dusty Blue)**: `#6D8DBF` (used for headers, footers, action buttons, active navigation states)
+* **Secondary (Peach)**: `#FFD1B6` (used for the global page background, accents, and visual layouts)
+* **Typography**: Integrated Geist Sans for clean body text and Geist Mono for code indicators.
+
+---
+
+## 🚀 Routed Pages Checklist
+*   **Home (`/`)**: Overview of the project scope and routed pages layout card list.
+*   **About (`/about`)**: Background information and project milestones cards.
+*   **Dashboard (`/dashboard`)**: Visual analytic stats cards and performance logs mockup graph.
+*   **Profile (`/profile`)**: Dynamic account summary layout with avatar display and commits stats.
+*   **Settings (`/settings`)**: Account details management featuring our ported **Tailwind SettingsForm** with live inputs validation.
+*   **Contact (`/contact`)**: Interactive contact query form with loading and feedback states.
+*   **Health (`/health`)**: Server Component that asynchronously fetches data from the JSONPlaceholder API to verify network status.
+*   **404 Not Found**: Custom error boundary layout card.
+
+---
+
+## 🛠️ Reusable UI Components
+All components are modularized under `src/components/`:
+*   **`Navbar.js`**: Responsive navigation bar with client-side mobile menu toggle.
+*   **`Footer.js`**: Consistent layout footer with dynamic copyright year.
+*   **`PageHeader.js`**: Header helper to display responsive page titles and descriptions.
+*   **`Card.js`**: Container container wrapper with custom shadows and rounded borders.
+*   **`SettingsForm.js`**: Client-side setting manager with built-in accessibility compliance.
+
+---
+
+## 💻 Local Development Setup
+
+### 1. Install Dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configure Environment Variables
+Create a `.env.local` file in the root folder (this is already git-ignored) and add:
+```env
+NEXT_PUBLIC_API_URL=https://jsonplaceholder.typicode.com
+```
+You can reference [.env.example](.env.example) for template details.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### 3. Start Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) to view the result in your browser.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 📦 Build & Deploy
 
-To learn more about Next.js, take a look at the following resources:
+### Production Build
+To check linting and build an optimized production bundle:
+```bash
+# Run ESLint linter
+npm run lint
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Compile production bundle
+npm run build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Vercel Deployment
+This repository is connected directly with Vercel. Pushing to the `main` branch automatically triggers production redeployment.
