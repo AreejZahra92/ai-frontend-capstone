@@ -11,3 +11,15 @@ When writing case studies:
 - Focus on my decisions
 - Do not invent achievements
 - Avoid generic developer phrases
+
+## AI Development Rules
+
+- All forms must include client-side validation and clear error messages before submission.
+
+- Reusable UI components should be created for repeated elements such as buttons, inputs, and toggles instead of duplicating code.
+
+- Every new feature must include testing for important user interactions before considering the feature complete.
+
+- Components should follow the existing project structure and styling conventions.
+
+- Interactive elements must include accessibility support such as proper labels and keyboard navigation.
