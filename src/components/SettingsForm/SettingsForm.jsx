@@ -1,75 +1,104 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import Input from "../common/Input/Input";
+import Toggle from "../common/Toggle/Toggle";
+import Button from "../common/Button/Button";
 import "./SettingsForm.css";
 
 export const DEFAULT_SETTINGS = {
-  displayName: "",
+  fullName: "",
   email: "",
-  theme: "system",
-  language: "en",
-  emailNotifications: true,
-  productUpdates: false,
+  password: "",
+  receiveNotifications: true,
 };
 
-const THEME_OPTIONS = [
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-  { value: "system", label: "System" },
-];
-
-const LANGUAGE_OPTIONS = [
-  { value: "en", label: "English" },
-  { value: "es", label: "Spanish" },
-  { value: "fr", label: "French" },
-];
-
-function isValidEmail(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
-}
-
 export default function SettingsForm({
-  initialValues = DEFAULT_SETTINGS,
+  initialValues = {},
   onSubmit,
   onCancel,
-  submitLabel = "Save changes",
+  submitLabel = "Save Changes",
 }) {
-  const [values, setValues] = useState({ ...DEFAULT_SETTINGS, ...initialValues });
+  const [values, setValues] = useState({
+    ...DEFAULT_SETTINGS,
+    ...initialValues,
+  });
+
   const [errors, setErrors] = useState({});
-  const [status, setStatus] = useState("idle");
+  const [status, setStatus] = useState("idle"); // idle | submitting | success | error
 
-  function updateField(field, value) {
-    setValues((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => {
-      if (!prev[field]) {
-        return prev;
+  // Client-side validation helper
+  const validateField = (name, value) => {
+    switch (name) {
+      case "fullName":
+        if (!value.trim()) {
+          return "Full name is required.";
+        }
+        return "";
+      case "email":
+        if (!value.trim()) {
+          return "Email address is required.";
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value.trim())) {
+          return "Please enter a valid email address.";
+        }
+        return "";
+      case "password":
+        if (!value.trim()) {
+          return "Password is required.";
+        }
+        if (value.length < 8) {
+          return "Password must be at least 8 characters.";
+        }
+        return "";
+      default:
+        return "";
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setValues((prev) => ({ ...prev, [name]: value }));
+    
+    // Clear error on change if it exists
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handleToggleChange = (e) => {
+    const { name, checked } = e.target;
+    setValues((prev) => ({ ...prev, [name]: checked }));
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    const errorMsg = validateField(name, value);
+    setErrors((prev) => ({ ...prev, [name]: errorMsg }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validate all fields
+    const newErrors = {};
+    Object.keys(DEFAULT_SETTINGS).forEach((key) => {
+      if (key !== "receiveNotifications") {
+        const errorMsg = validateField(key, values[key]);
+        if (errorMsg) {
+          newErrors[key] = errorMsg;
+        }
       }
-      const next = { ...prev };
-      delete next[field];
-      return next;
     });
-  }
 
-  function validate(formValues) {
-    const nextErrors = {};
-
-    if (!formValues.displayName.trim()) {
-      nextErrors.displayName = "Display name is required.";
-    }
-
-    if (!formValues.email.trim()) {
-      nextErrors.email = "Email is required.";
-    } else if (!isValidEmail(formValues.email)) {
-      nextErrors.email = "Enter a valid email address.";
-    }
-
-    return nextErrors;
-  }
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-    const nextErrors = validate(values);
-    setErrors(nextErrors);
-
-    if (Object.keys(nextErrors).length > 0) {
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      
+      // Auto-focus the first invalid field for accessibility
+      const firstInvalidField = Object.keys(newErrors)[0];
+      const element = document.getElementsByName(firstInvalidField)[0];
+      if (element) {
+        element.focus();
+      }
       return;
     }
 
@@ -80,186 +109,132 @@ export default function SettingsForm({
         await onSubmit(values);
       }
       setStatus("success");
-    } catch {
+      
+      // Clear password field after successful save for security
+      setValues((prev) => ({ ...prev, password: "" }));
+      
+      // Auto-hide success message after 4 seconds
+      setTimeout(() => {
+        setStatus("idle");
+      }, 4000);
+    } catch (err) {
+      console.error("Submission failed:", err);
       setStatus("error");
     }
-  }
+  };
 
-  function handleReset() {
-    setValues({ ...DEFAULT_SETTINGS, ...initialValues });
+  const handleCancel = () => {
+    setValues({
+      ...DEFAULT_SETTINGS,
+      ...initialValues,
+    });
     setErrors({});
     setStatus("idle");
-    onCancel?.();
-  }
+    if (onCancel) {
+      onCancel();
+    }
+  };
 
   return (
-    <form
-      className="settings-form"
-      onSubmit={handleSubmit}
-      noValidate
-      aria-labelledby="settings-form-title"
-    >
-      <header className="settings-form__header">
-        <h2 id="settings-form-title" className="settings-form__title">
-          Settings
-        </h2>
-        <p className="settings-form__subtitle">
-          Update your profile and preferences.
+    <form className="settings-form" onSubmit={handleSubmit} noValidate>
+      <div className="settings-form-header">
+        <h1 className="settings-form-title">Account Settings</h1>
+        <p className="settings-form-subtitle">
+          Manage your profile details and notification preferences.
         </p>
-      </header>
+      </div>
 
-      <fieldset className="settings-form__section">
-        <legend className="settings-form__legend">Profile</legend>
+      <fieldset className="settings-form-section" disabled={status === "submitting"}>
+        <legend className="settings-form-legend">Personal Details</legend>
+        
+        <Input
+          label="Full Name"
+          type="text"
+          name="fullName"
+          value={values.fullName}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          error={errors.fullName}
+          placeholder="e.g. Jane Doe"
+          required
+          autoComplete="name"
+        />
 
-        <div className="settings-form__field">
-          <label className="settings-form__label" htmlFor="settings-display-name">
-            Display name
-          </label>
-          <input
-            id="settings-display-name"
-            className="settings-form__input"
-            type="text"
-            name="displayName"
-            value={values.displayName}
-            onChange={(event) => updateField("displayName", event.target.value)}
-            autoComplete="name"
-            aria-invalid={Boolean(errors.displayName)}
-            aria-describedby={
-              errors.displayName ? "settings-display-name-error" : undefined
-            }
-          />
-          {errors.displayName ? (
-            <p
-              id="settings-display-name-error"
-              className="settings-form__error"
-              role="alert"
-            >
-              {errors.displayName}
-            </p>
-          ) : null}
-        </div>
+        <Input
+          label="Email Address"
+          type="email"
+          name="email"
+          value={values.email}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          error={errors.email}
+          placeholder="e.g. jane.doe@example.com"
+          required
+          autoComplete="email"
+        />
 
-        <div className="settings-form__field">
-          <label className="settings-form__label" htmlFor="settings-email">
-            Email
-          </label>
-          <input
-            id="settings-email"
-            className="settings-form__input"
-            type="email"
-            name="email"
-            value={values.email}
-            onChange={(event) => updateField("email", event.target.value)}
-            autoComplete="email"
-            aria-invalid={Boolean(errors.email)}
-            aria-describedby={errors.email ? "settings-email-error" : undefined}
-          />
-          {errors.email ? (
-            <p id="settings-email-error" className="settings-form__error" role="alert">
-              {errors.email}
-            </p>
-          ) : null}
-        </div>
+        <Input
+          label="Password"
+          type="password"
+          name="password"
+          value={values.password}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          error={errors.password}
+          placeholder="Min. 8 characters"
+          required
+          autoComplete="current-password"
+        />
       </fieldset>
 
-      <fieldset className="settings-form__section">
-        <legend className="settings-form__legend">Preferences</legend>
-
-        <div className="settings-form__field">
-          <label className="settings-form__label" htmlFor="settings-theme">
-            Theme
-          </label>
-          <select
-            id="settings-theme"
-            className="settings-form__select"
-            name="theme"
-            value={values.theme}
-            onChange={(event) => updateField("theme", event.target.value)}
-          >
-            {THEME_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="settings-form__field">
-          <label className="settings-form__label" htmlFor="settings-language">
-            Language
-          </label>
-          <select
-            id="settings-language"
-            className="settings-form__select"
-            name="language"
-            value={values.language}
-            onChange={(event) => updateField("language", event.target.value)}
-          >
-            {LANGUAGE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+      <fieldset className="settings-form-section" disabled={status === "submitting"}>
+        <legend className="settings-form-legend">Preferences</legend>
+        
+        <Toggle
+          label="Email Notifications"
+          description="Receive security updates, alerts, and weekly digests."
+          name="receiveNotifications"
+          checked={values.receiveNotifications}
+          onChange={handleToggleChange}
+        />
       </fieldset>
 
-      <fieldset className="settings-form__section">
-        <legend className="settings-form__legend">Notifications</legend>
+      {status === "success" && (
+        <div className="settings-feedback settings-feedback--success" role="status">
+          <svg className="settings-feedback-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>Settings saved successfully.</span>
+        </div>
+      )}
 
-        <label className="settings-form__checkbox">
-          <input
-            type="checkbox"
-            name="emailNotifications"
-            checked={values.emailNotifications}
-            onChange={(event) =>
-              updateField("emailNotifications", event.target.checked)
-            }
-          />
-          <span>Email me about account activity</span>
-        </label>
+      {status === "error" && (
+        <div className="settings-feedback settings-feedback--error" role="alert">
+          <svg className="settings-feedback-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>Failed to save settings. Please try again.</span>
+        </div>
+      )}
 
-        <label className="settings-form__checkbox">
-          <input
-            type="checkbox"
-            name="productUpdates"
-            checked={values.productUpdates}
-            onChange={(event) => updateField("productUpdates", event.target.checked)}
-          />
-          <span>Send product updates and tips</span>
-        </label>
-      </fieldset>
-
-      {status === "success" ? (
-        <p className="settings-form__feedback settings-form__feedback--success" role="status">
-          Settings saved successfully.
-        </p>
-      ) : null}
-
-      {status === "error" ? (
-        <p className="settings-form__feedback settings-form__feedback--error" role="alert">
-          Something went wrong. Please try again.
-        </p>
-      ) : null}
-
-      <div className="settings-form__actions">
-        {onCancel ? (
-          <button
-            type="button"
-            className="settings-form__button settings-form__button--secondary"
-            onClick={handleReset}
-            disabled={status === "submitting"}
-          >
-            Cancel
-          </button>
-        ) : null}
-        <button
-          type="submit"
-          className="settings-form__button settings-form__button--primary"
+      <div className="settings-form-actions">
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={handleCancel}
           disabled={status === "submitting"}
         >
-          {status === "submitting" ? "Saving…" : submitLabel}
-        </button>
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          variant="primary"
+          isLoading={status === "submitting"}
+        >
+          {submitLabel}
+        </Button>
       </div>
     </form>
   );
