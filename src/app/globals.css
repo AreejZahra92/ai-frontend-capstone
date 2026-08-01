@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+:root {
+  /* Set background strictly to Peach and text to dark blue */
+  --background: #ffd1b6;
+  --foreground: #22324d; /* Dark slate blue for high readability on peach background */
+}
+
+@theme {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular;
+  
+  /* Brand Color Design System (Dusty Blue & Peach) */
+  --color-brand-blue: #6d8dbf;
+  --color-brand-blue-hover: #5777ab;
+  --color-brand-blue-dark: #22324d;
+  
+  --color-brand-peach: #ffd1b6;
+  --color-brand-peach-hover: #ffbe96;
+  --color-brand-peach-light: #fff2eb;
+  --color-brand-peach-dark: #e8a074;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Premium Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
